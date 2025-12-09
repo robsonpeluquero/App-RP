@@ -1,10 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Package, FileText, LayoutDashboard, Menu, X, BarChart2, Calculator } from 'lucide-react';
+import { Package, FileText, LayoutDashboard, Menu, X, BarChart2, Calculator, LogOut, User } from 'lucide-react';
 import { useState } from 'react';
+import { useApp } from '../context';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useApp();
 
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: <BarChart2 size={20} /> },
@@ -25,11 +27,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Sidebar */}
       <aside 
-        className={`fixed lg:static inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:transform-none ${
+        className={`fixed lg:static inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:transform-none flex flex-col ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-2 font-bold text-xl text-primary">
             <LayoutDashboard className="text-accent" />
             <span>Obra360</span>
@@ -42,7 +44,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </button>
         </div>
 
-        <nav className="p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -61,12 +63,36 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </NavLink>
           ))}
         </nav>
+
+        {/* User Profile Section */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center gap-3 mb-4 px-2">
+            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                <User size={20} className="text-gray-500" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
+              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            </div>
+          </div>
+          <button 
+            onClick={logout}
+            className="flex items-center gap-3 px-4 py-2 w-full text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <LogOut size={20} />
+            Sair
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile Header */}
-        <header className="lg:hidden flex items-center h-16 px-4 bg-white border-b border-gray-200">
+        <header className="lg:hidden flex items-center h-16 px-4 bg-white border-b border-gray-200 flex-shrink-0">
           <button 
             onClick={() => setSidebarOpen(true)}
             className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-md"

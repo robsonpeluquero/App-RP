@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Material, Orcamento } from './types';
+import { Material, Orcamento, User } from './types';
 
 // Mock Data Inicial
 const MOCK_MATERIALS: Material[] = [
@@ -41,6 +41,7 @@ const MOCK_ORCAMENTOS: Orcamento[] = [
 ];
 
 interface AppContextType {
+  user: User | null;
   materials: Material[];
   budgets: Orcamento[];
   addMaterial: (material: Material) => void;
@@ -49,24 +50,53 @@ interface AppContextType {
   addBudget: (budget: Orcamento) => void;
   updateBudget: (budget: Orcamento) => void;
   deleteBudget: (id: string) => void;
+  login: (email: string, pass: string) => Promise<void>;
+  register: (name: string, email: string, pass: string) => Promise<void>;
+  logout: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Auth State
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('obra360_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
   const [materials, setMaterials] = useState<Material[]>(MOCK_MATERIALS);
   const [budgets, setBudgets] = useState<Orcamento[]>(MOCK_ORCAMENTOS);
 
-  /* 
-   * NOTA SOBRE INTEGRAÇÃO COM BACKEND/N8N:
-   * 
-   * Para integrar com um backend real:
-   * 1. Substitua os MOCK_MATERIALS por um useEffect que faz fetch na API ao carregar.
-   *    useEffect(() => { api.get('/materials').then(setMaterials) }, []);
-   * 
-   * 2. A função addMaterial deveria fazer um POST na API e atualizar o estado apenas no sucesso.
-   *    const addMaterial = async (m) => { await api.post('/materials', m); fetchMaterials(); }
-   */
+  const login = async (email: string, pass: string) => {
+    // Mock login delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    const mockUser: User = {
+      id: '1',
+      name: 'Usuário Demo',
+      email: email,
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+    };
+    setUser(mockUser);
+    localStorage.setItem('obra360_user', JSON.stringify(mockUser));
+  };
+
+  const register = async (name: string, email: string, pass: string) => {
+    // Mock register delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    const newUser: User = {
+      id: Math.random().toString(36).substr(2, 9),
+      name,
+      email,
+      avatar: undefined 
+    };
+    setUser(newUser);
+    localStorage.setItem('obra360_user', JSON.stringify(newUser));
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('obra360_user');
+  };
 
   const addMaterial = (material: Material) => {
     setMaterials((prev) => [...prev, material]);
@@ -94,6 +124,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{ 
+      user,
       materials, 
       budgets, 
       addMaterial, 
@@ -101,7 +132,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deleteMaterial, 
       addBudget,
       updateBudget,
-      deleteBudget 
+      deleteBudget,
+      login,
+      register,
+      logout
     }}>
       {children}
     </AppContext.Provider>
