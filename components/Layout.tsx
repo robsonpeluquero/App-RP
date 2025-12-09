@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Package, FileText, LayoutDashboard, Menu, X, BarChart2, Calculator, LogOut, User } from 'lucide-react';
+import { Package, FileText, LayoutDashboard, Menu, X, BarChart2, Calculator, LogOut, User, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useApp } from '../context';
 
@@ -66,19 +66,24 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         {/* User Profile Section */}
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3 mb-4 px-2">
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300">
+          <NavLink 
+            to="/profile"
+            className="flex items-center gap-3 mb-4 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors group"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300 flex-shrink-0">
               {user?.avatar ? (
                 <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
               ) : (
                 <User size={20} className="text-gray-500" />
               )}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-sm font-medium text-gray-900 truncate group-hover:text-accent transition-colors">{user?.name}</p>
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
             </div>
-          </div>
+            <Settings size={16} className="text-gray-400 group-hover:text-accent" />
+          </NavLink>
           <button 
             onClick={logout}
             className="flex items-center gap-3 px-4 py-2 w-full text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"

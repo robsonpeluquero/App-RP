@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage';
 import CalculatorPage from './pages/CalculatorPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ProfilePage from './pages/ProfilePage';
 import { AppProvider, useApp } from './context';
 
 // Wrapper for protected routes
@@ -39,6 +40,7 @@ const AppRoutes = () => {
         <Route path="/orcamentos/novo" element={<NewBudgetPage />} />
         <Route path="/orcamentos/editar/:id" element={<NewBudgetPage />} />
         <Route path="/calculadora" element={<CalculatorPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
     </Routes>
   );

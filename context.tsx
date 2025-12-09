@@ -53,6 +53,7 @@ interface AppContextType {
   login: (email: string, pass: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
   logout: () => void;
+  updateUser: (data: Partial<User>) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -98,6 +99,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem('obra360_user');
   };
 
+  const updateUser = async (data: Partial<User>) => {
+    if (!user) return;
+    // Mock delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const newUser = { ...user, ...data };
+    setUser(newUser);
+    localStorage.setItem('obra360_user', JSON.stringify(newUser));
+  };
+
   const addMaterial = (material: Material) => {
     setMaterials((prev) => [...prev, material]);
   };
@@ -135,7 +145,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deleteBudget,
       login,
       register,
-      logout
+      logout,
+      updateUser
     }}>
       {children}
     </AppContext.Provider>
