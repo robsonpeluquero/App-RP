@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Material, Orcamento, User, ChecklistItem } from './types';
+import { Material, Orcamento, User, ChecklistItem, Measurement, Addition } from './types';
 
 // Mock Data Inicial
 const MOCK_MATERIALS: Material[] = [
@@ -57,11 +57,35 @@ const INITIAL_CHECKLIST: ChecklistItem[] = [
   { id: '14', category: 'Pintura', task: 'Parede lixada e selada antes da tinta?', completed: false },
 ];
 
+const MOCK_MEASUREMENTS: Measurement[] = [
+  {
+    id: '1',
+    stage: 'Fundação',
+    date: '2023-09-10',
+    percentage: 100,
+    description: 'Concretagem das sapatas finalizada.',
+    photos: []
+  }
+];
+
+const MOCK_ADDITIONS: Addition[] = [
+  {
+    id: '1',
+    date: '2023-10-05',
+    reason: 'Alteração do ponto de esgoto da cozinha devido à viga não prevista.',
+    costImpact: 450.00,
+    timeImpact: 2,
+    status: 'approved'
+  }
+];
+
 interface AppContextType {
   user: User | null;
   materials: Material[];
   budgets: Orcamento[];
   checklist: ChecklistItem[];
+  measurements: Measurement[];
+  additions: Addition[];
   addMaterial: (material: Material) => void;
   updateMaterial: (material: Material) => void;
   deleteMaterial: (id: string) => void;
@@ -69,6 +93,11 @@ interface AppContextType {
   updateBudget: (budget: Orcamento) => void;
   deleteBudget: (id: string) => void;
   toggleCheckItem: (id: string) => void;
+  addMeasurement: (measurement: Measurement) => void;
+  deleteMeasurement: (id: string) => void;
+  addAddition: (addition: Addition) => void;
+  updateAddition: (addition: Addition) => void;
+  deleteAddition: (id: string) => void;
   login: (email: string, pass: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
   logout: () => void;
@@ -88,19 +117,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [materials, setMaterials] = useState<Material[]>(MOCK_MATERIALS);
   const [budgets, setBudgets] = useState<Orcamento[]>(MOCK_ORCAMENTOS);
   
-  // Checklist State with persistence
+  // Checklist State
   const [checklist, setChecklist] = useState<ChecklistItem[]>(() => {
     const saved = localStorage.getItem('obra360_checklist');
     return saved ? JSON.parse(saved) : INITIAL_CHECKLIST;
   });
 
-  // Persist checklist whenever it changes
-  useEffect(() => {
-    localStorage.setItem('obra360_checklist', JSON.stringify(checklist));
-  }, [checklist]);
+  // Measurements & Additions State
+  const [measurements, setMeasurements] = useState<Measurement[]>(() => {
+    const saved = localStorage.getItem('obra360_measurements');
+    return saved ? JSON.parse(saved) : MOCK_MEASUREMENTS;
+  });
+
+  const [additions, setAdditions] = useState<Addition[]>(() => {
+    const saved = localStorage.getItem('obra360_additions');
+    return saved ? JSON.parse(saved) : MOCK_ADDITIONS;
+  });
+
+  // Persist effects
+  useEffect(() => { localStorage.setItem('obra360_checklist', JSON.stringify(checklist)); }, [checklist]);
+  useEffect(() => { localStorage.setItem('obra360_measurements', JSON.stringify(measurements)); }, [measurements]);
+  useEffect(() => { localStorage.setItem('obra360_additions', JSON.stringify(additions)); }, [additions]);
 
   const login = async (email: string, pass: string) => {
-    // Mock login delay
     await new Promise(resolve => setTimeout(resolve, 800));
     const mockUser: User = {
       id: '1',
@@ -113,7 +152,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const register = async (name: string, email: string, pass: string) => {
-    // Mock register delay
     await new Promise(resolve => setTimeout(resolve, 800));
     const newUser: User = {
       id: Math.random().toString(36).substr(2, 9),
@@ -132,7 +170,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateUser = async (data: Partial<User>) => {
     if (!user) return;
-    // Mock delay
     await new Promise(resolve => setTimeout(resolve, 500));
     const newUser = { ...user, ...data };
     setUser(newUser);
@@ -140,41 +177,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const changePassword = async (currentPass: string, newPass: string) => {
-    // Mock delay
     await new Promise(resolve => setTimeout(resolve, 800));
     console.log(`Password update requested for user ${user?.email}`);
-    // In a real implementation with MariaDB/MySQL, you would send a request to your API here.
   };
 
-  const addMaterial = (material: Material) => {
-    setMaterials((prev) => [...prev, material]);
-  };
+  // Materials CRUD
+  const addMaterial = (material: Material) => setMaterials((prev) => [...prev, material]);
+  const updateMaterial = (material: Material) => setMaterials((prev) => prev.map((m) => (m.id === material.id ? material : m)));
+  const deleteMaterial = (id: string) => setMaterials((prev) => prev.filter((m) => m.id !== id));
 
-  const updateMaterial = (material: Material) => {
-    setMaterials((prev) => prev.map((m) => (m.id === material.id ? material : m)));
-  };
+  // Budget CRUD
+  const addBudget = (budget: Orcamento) => setBudgets((prev) => [budget, ...prev]);
+  const updateBudget = (budget: Orcamento) => setBudgets((prev) => prev.map((b) => (b.id === budget.id ? budget : b)));
+  const deleteBudget = (id: string) => setBudgets((prev) => prev.filter((b) => b.id !== id));
 
-  const deleteMaterial = (id: string) => {
-    setMaterials((prev) => prev.filter((m) => m.id !== id));
-  };
-
-  const addBudget = (budget: Orcamento) => {
-    setBudgets((prev) => [budget, ...prev]);
-  };
-
-  const updateBudget = (budget: Orcamento) => {
-    setBudgets((prev) => prev.map((b) => (b.id === budget.id ? budget : b)));
-  };
-
-  const deleteBudget = (id: string) => {
-    setBudgets((prev) => prev.filter((b) => b.id !== id));
-  };
-
+  // Checklist
   const toggleCheckItem = (id: string) => {
     setChecklist(prev => prev.map(item => 
       item.id === id ? { ...item, completed: !item.completed } : item
     ));
   };
+
+  // Measurements CRUD
+  const addMeasurement = (measurement: Measurement) => setMeasurements(prev => [measurement, ...prev]);
+  const deleteMeasurement = (id: string) => setMeasurements(prev => prev.filter(m => m.id !== id));
+
+  // Additions CRUD
+  const addAddition = (addition: Addition) => setAdditions(prev => [addition, ...prev]);
+  const updateAddition = (addition: Addition) => setAdditions(prev => prev.map(a => a.id === addition.id ? addition : a));
+  const deleteAddition = (id: string) => setAdditions(prev => prev.filter(a => a.id !== id));
 
   return (
     <AppContext.Provider value={{ 
@@ -182,6 +213,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       materials, 
       budgets, 
       checklist,
+      measurements,
+      additions,
       addMaterial, 
       updateMaterial, 
       deleteMaterial, 
@@ -189,6 +222,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateBudget,
       deleteBudget,
       toggleCheckItem,
+      addMeasurement,
+      deleteMeasurement,
+      addAddition,
+      updateAddition,
+      deleteAddition,
       login,
       register,
       logout,

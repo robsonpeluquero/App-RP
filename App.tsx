@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import ChecklistPage from './pages/ChecklistPage';
+import MeasurementsPage from './pages/MeasurementsPage';
 import { AppProvider, useApp } from './context';
 
 // Wrapper for protected routes
@@ -40,6 +41,7 @@ const AppRoutes = () => {
         <Route path="/orcamentos" element={<BudgetsPage />} />
         <Route path="/orcamentos/novo" element={<NewBudgetPage />} />
         <Route path="/orcamentos/editar/:id" element={<NewBudgetPage />} />
+        <Route path="/medicoes" element={<MeasurementsPage />} />
         <Route path="/calculadora" element={<CalculatorPage />} />
         <Route path="/checklist" element={<ChecklistPage />} />
         <Route path="/profile" element={<ProfilePage />} />

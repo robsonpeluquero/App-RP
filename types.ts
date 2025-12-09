@@ -44,6 +44,24 @@ export interface ChecklistItem {
   completed: boolean;
 }
 
+export interface Measurement {
+  id: string;
+  stage: string; // Etapa (ex: Fundação, Alvenaria)
+  date: string;
+  percentage: number; // Progresso %
+  description: string;
+  photos: string[]; // Base64 strings
+}
+
+export interface Addition {
+  id: string;
+  date: string;
+  reason: string; // Motivo da alteração de escopo
+  costImpact: number; // Custo extra
+  timeImpact: number; // Dias extras
+  status: 'pending' | 'approved' | 'rejected';
+}
+
 export type UnitType = 'un' | 'm' | 'm²' | 'm³' | 'kg' | 'l' | 'cx';
 
 export const UNITS: UnitType[] = ['un', 'm', 'm²', 'm³', 'kg', 'l', 'cx'];

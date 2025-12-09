@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Package, FileText, LayoutDashboard, Menu, X, BarChart2, Calculator, LogOut, User, Settings, ClipboardCheck } from 'lucide-react';
+import { Package, FileText, LayoutDashboard, Menu, X, BarChart2, Calculator, LogOut, User, Settings, ClipboardCheck, Ruler } from 'lucide-react';
 import { useState } from 'react';
 import { useApp } from '../context';
 
@@ -12,6 +12,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { to: '/dashboard', label: 'Dashboard', icon: <BarChart2 size={20} /> },
     { to: '/orcamentos', label: 'Orçamentos', icon: <FileText size={20} /> },
     { to: '/materiais', label: 'Materiais', icon: <Package size={20} /> },
+    { to: '/medicoes', label: 'Medições e Aditivos', icon: <Ruler size={20} /> },
     { to: '/calculadora', label: 'Calculadora', icon: <Calculator size={20} /> },
     { to: '/checklist', label: 'Checklist', icon: <ClipboardCheck size={20} /> },
   ];
