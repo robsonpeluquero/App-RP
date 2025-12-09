@@ -37,6 +37,13 @@ export interface User {
   avatar?: string;
 }
 
+export interface ChecklistItem {
+  id: string;
+  category: string;
+  task: string;
+  completed: boolean;
+}
+
 export type UnitType = 'un' | 'm' | 'm²' | 'm³' | 'kg' | 'l' | 'cx';
 
 export const UNITS: UnitType[] = ['un', 'm', 'm²', 'm³', 'kg', 'l', 'cx'];

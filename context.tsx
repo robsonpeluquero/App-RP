@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Material, Orcamento, User } from './types';
+import { Material, Orcamento, User, ChecklistItem } from './types';
 
 // Mock Data Inicial
 const MOCK_MATERIALS: Material[] = [
@@ -40,20 +40,40 @@ const MOCK_ORCAMENTOS: Orcamento[] = [
   }
 ];
 
+const INITIAL_CHECKLIST: ChecklistItem[] = [
+  { id: '1', category: 'Fundação & Estrutura', task: 'Impermeabilização das vigas baldrames realizada?', completed: false },
+  { id: '2', category: 'Fundação & Estrutura', task: 'Tempo de cura do concreto respeitado (28 dias)?', completed: false },
+  { id: '3', category: 'Fundação & Estrutura', task: 'Ferragens conferidas antes da concretagem?', completed: false },
+  { id: '4', category: 'Alvenaria & Paredes', task: 'Prumo e nível das paredes conferidos?', completed: false },
+  { id: '5', category: 'Alvenaria & Paredes', task: 'Vergas e contravergas instaladas nas janelas/portas?', completed: false },
+  { id: '6', category: 'Elétrica', task: 'Tubulação passada conforme projeto?', completed: false },
+  { id: '7', category: 'Elétrica', task: 'Teste de continuidade nos fios realizado?', completed: false },
+  { id: '8', category: 'Elétrica', task: 'Quadro de distribuição montado e identificado?', completed: false },
+  { id: '9', category: 'Hidráulica', task: 'Teste de pressão na tubulação de água (sem vazamentos)?', completed: false },
+  { id: '10', category: 'Hidráulica', task: 'Caimento do esgoto verificado (min 1-2%)?', completed: false },
+  { id: '11', category: 'Hidráulica', task: 'Impermeabilização de áreas molhadas (banheiros/cozinha)?', completed: false },
+  { id: '12', category: 'Acabamento', task: 'Contrapiso nivelado?', completed: false },
+  { id: '13', category: 'Acabamento', task: 'Recortes de piso alinhados e simétricos?', completed: false },
+  { id: '14', category: 'Pintura', task: 'Parede lixada e selada antes da tinta?', completed: false },
+];
+
 interface AppContextType {
   user: User | null;
   materials: Material[];
   budgets: Orcamento[];
+  checklist: ChecklistItem[];
   addMaterial: (material: Material) => void;
   updateMaterial: (material: Material) => void;
   deleteMaterial: (id: string) => void;
   addBudget: (budget: Orcamento) => void;
   updateBudget: (budget: Orcamento) => void;
   deleteBudget: (id: string) => void;
+  toggleCheckItem: (id: string) => void;
   login: (email: string, pass: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
   logout: () => void;
   updateUser: (data: Partial<User>) => Promise<void>;
+  changePassword: (currentPass: string, newPass: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -67,6 +87,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [materials, setMaterials] = useState<Material[]>(MOCK_MATERIALS);
   const [budgets, setBudgets] = useState<Orcamento[]>(MOCK_ORCAMENTOS);
+  
+  // Checklist State with persistence
+  const [checklist, setChecklist] = useState<ChecklistItem[]>(() => {
+    const saved = localStorage.getItem('obra360_checklist');
+    return saved ? JSON.parse(saved) : INITIAL_CHECKLIST;
+  });
+
+  // Persist checklist whenever it changes
+  useEffect(() => {
+    localStorage.setItem('obra360_checklist', JSON.stringify(checklist));
+  }, [checklist]);
 
   const login = async (email: string, pass: string) => {
     // Mock login delay
@@ -108,6 +139,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('obra360_user', JSON.stringify(newUser));
   };
 
+  const changePassword = async (currentPass: string, newPass: string) => {
+    // Mock delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    console.log(`Password update requested for user ${user?.email}`);
+    // In a real implementation with MariaDB/MySQL, you would send a request to your API here.
+  };
+
   const addMaterial = (material: Material) => {
     setMaterials((prev) => [...prev, material]);
   };
@@ -132,21 +170,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setBudgets((prev) => prev.filter((b) => b.id !== id));
   };
 
+  const toggleCheckItem = (id: string) => {
+    setChecklist(prev => prev.map(item => 
+      item.id === id ? { ...item, completed: !item.completed } : item
+    ));
+  };
+
   return (
     <AppContext.Provider value={{ 
       user,
       materials, 
       budgets, 
+      checklist,
       addMaterial, 
       updateMaterial, 
       deleteMaterial, 
       addBudget,
       updateBudget,
       deleteBudget,
+      toggleCheckItem,
       login,
       register,
       logout,
-      updateUser
+      updateUser,
+      changePassword
     }}>
       {children}
     </AppContext.Provider>
