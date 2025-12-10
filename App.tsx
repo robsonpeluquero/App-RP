@@ -11,6 +11,7 @@ import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import ChecklistPage from './pages/ChecklistPage';
 import MeasurementsPage from './pages/MeasurementsPage';
+import IntegrationsPage from './pages/IntegrationsPage';
 import { AppProvider, useApp } from './context';
 
 // Wrapper for protected routes
@@ -44,6 +45,7 @@ const AppRoutes = () => {
         <Route path="/medicoes" element={<MeasurementsPage />} />
         <Route path="/calculadora" element={<CalculatorPage />} />
         <Route path="/checklist" element={<ChecklistPage />} />
+        <Route path="/integracoes" element={<IntegrationsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Route>
     </Routes>

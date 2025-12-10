@@ -62,6 +62,16 @@ export interface Addition {
   status: 'pending' | 'approved' | 'rejected';
 }
 
+export interface Integration {
+  id: string;
+  provider: 'google_drive' | 'dropbox' | 'onedrive';
+  name: string;
+  description: string;
+  connected: boolean;
+  connectedEmail?: string;
+  lastSync?: string;
+}
+
 export type UnitType = 'un' | 'm' | 'm²' | 'm³' | 'kg' | 'l' | 'cx';
 
 export const UNITS: UnitType[] = ['un', 'm', 'm²', 'm³', 'kg', 'l', 'cx'];

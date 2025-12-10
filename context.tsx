@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Material, Orcamento, User, ChecklistItem, Measurement, Addition } from './types';
+import { Material, Orcamento, User, ChecklistItem, Measurement, Addition, Integration } from './types';
 
 // Mock Data Inicial
 const MOCK_MATERIALS: Material[] = [
@@ -79,6 +79,16 @@ const MOCK_ADDITIONS: Addition[] = [
   }
 ];
 
+const INITIAL_INTEGRATIONS: Integration[] = [
+  {
+    id: '1',
+    provider: 'google_drive',
+    name: 'Google Drive',
+    description: 'Conecte sua conta para salvar backups de orçamentos e relatórios automaticamente.',
+    connected: false
+  }
+];
+
 interface AppContextType {
   user: User | null;
   materials: Material[];
@@ -86,6 +96,7 @@ interface AppContextType {
   checklist: ChecklistItem[];
   measurements: Measurement[];
   additions: Addition[];
+  integrations: Integration[];
   addMaterial: (material: Material) => void;
   updateMaterial: (material: Material) => void;
   deleteMaterial: (id: string) => void;
@@ -98,6 +109,8 @@ interface AppContextType {
   addAddition: (addition: Addition) => void;
   updateAddition: (addition: Addition) => void;
   deleteAddition: (id: string) => void;
+  connectIntegration: (provider: string, email: string) => Promise<void>;
+  disconnectIntegration: (provider: string) => void;
   login: (email: string, pass: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
   logout: () => void;
@@ -134,10 +147,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : MOCK_ADDITIONS;
   });
 
+  // Integrations State
+  const [integrations, setIntegrations] = useState<Integration[]>(() => {
+    const saved = localStorage.getItem('obra360_integrations');
+    return saved ? JSON.parse(saved) : INITIAL_INTEGRATIONS;
+  });
+
   // Persist effects
   useEffect(() => { localStorage.setItem('obra360_checklist', JSON.stringify(checklist)); }, [checklist]);
   useEffect(() => { localStorage.setItem('obra360_measurements', JSON.stringify(measurements)); }, [measurements]);
   useEffect(() => { localStorage.setItem('obra360_additions', JSON.stringify(additions)); }, [additions]);
+  useEffect(() => { localStorage.setItem('obra360_integrations', JSON.stringify(integrations)); }, [integrations]);
 
   const login = async (email: string, pass: string) => {
     await new Promise(resolve => setTimeout(resolve, 800));
@@ -207,6 +227,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateAddition = (addition: Addition) => setAdditions(prev => prev.map(a => a.id === addition.id ? addition : a));
   const deleteAddition = (id: string) => setAdditions(prev => prev.filter(a => a.id !== id));
 
+  // Integrations Actions
+  const connectIntegration = async (provider: string, email: string) => {
+    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
+    setIntegrations(prev => prev.map(int => 
+      int.provider === provider 
+      ? { ...int, connected: true, connectedEmail: email, lastSync: new Date().toISOString() } 
+      : int
+    ));
+  };
+
+  const disconnectIntegration = (provider: string) => {
+    setIntegrations(prev => prev.map(int => 
+      int.provider === provider 
+      ? { ...int, connected: false, connectedEmail: undefined, lastSync: undefined } 
+      : int
+    ));
+  };
+
   return (
     <AppContext.Provider value={{ 
       user,
@@ -215,6 +253,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       checklist,
       measurements,
       additions,
+      integrations,
       addMaterial, 
       updateMaterial, 
       deleteMaterial, 
@@ -227,6 +266,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addAddition,
       updateAddition,
       deleteAddition,
+      connectIntegration,
+      disconnectIntegration,
       login,
       register,
       logout,

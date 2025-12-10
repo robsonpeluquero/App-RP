@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Trash, Save, PlusCircle, AlertCircle, Phone, Globe, Store } from 'lucide-react';
+import { ArrowLeft, Trash, Save, PlusCircle, AlertCircle, Phone, Globe, Store, FileDown } from 'lucide-react';
 import { OrcamentoItem, Orcamento } from '../types';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function NewBudgetPage() {
   const { materials, addBudget, updateBudget, budgets } = useApp();
@@ -122,6 +124,73 @@ export default function NewBudgetPage() {
     }
     
     navigate('/orcamentos');
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const displayNum = budgetNumber || "Rascunho";
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Orçamento de Materiais", 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
+    
+    // Supplier Info Box
+    doc.setDrawColor(200);
+    doc.setFillColor(250, 250, 250);
+    doc.rect(14, 35, 182, 35, 'FD');
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Fornecedor: ${supplierName || 'N/A'}`, 20, 45);
+    doc.setFontSize(10);
+    doc.text(`Telefone: ${supplierPhone || '-'}`, 20, 52);
+    doc.text(`Site: ${supplierSite || '-'}`, 20, 59);
+    doc.text(`Ref: ${displayNum}`, 140, 45);
+
+    // Items Table
+    const tableColumn = ["Material", "Qtd", "Unitário", "Total"];
+    const tableRows = items.map(item => [
+      item.descricaoSnapshot,
+      item.quantidade.toString(),
+      item.precoUnitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+      item.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 75,
+      theme: 'grid',
+      headStyles: { fillColor: [37, 99, 235] }, // Blue accent color
+      styles: { fontSize: 10, cellPadding: 3 },
+    });
+
+    // Total
+    // @ts-ignore
+    const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 85;
+    
+    doc.setFontSize(12);
+    doc.text(`Total Geral:`, 140, finalY);
+    doc.setFontSize(14);
+    doc.setTextColor(37, 99, 235);
+    doc.text(totalBudget.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), 140, finalY + 7);
+
+    // Obs
+    if (obs) {
+        doc.setFontSize(10);
+        doc.setTextColor(0);
+        doc.text("Observações:", 14, finalY + 20);
+        doc.setTextColor(100);
+        const splitObs = doc.splitTextToSize(obs, 180);
+        doc.text(splitObs, 14, finalY + 26);
+    }
+
+    doc.save(`orcamento_${displayNum.replace(/\s+/g, '_')}.pdf`);
   };
 
   return (
@@ -363,6 +432,16 @@ export default function NewBudgetPage() {
                 <Save size={18} />
                 {isEditing ? 'Atualizar Orçamento' : 'Finalizar Orçamento'}
               </button>
+              
+              <button 
+                onClick={handleExportPDF}
+                disabled={items.length === 0}
+                className="w-full py-3 bg-white border border-gray-300 text-gray-700 rounded-md font-semibold hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 flex justify-center items-center gap-2"
+              >
+                <FileDown size={18} />
+                Exportar PDF
+              </button>
+
               <Link 
                 to="/orcamentos"
                 className="w-full py-3 bg-white border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors flex justify-center items-center"
