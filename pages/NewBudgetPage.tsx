@@ -7,7 +7,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export default function NewBudgetPage() {
-  const { materials, addBudget, updateBudget, budgets } = useApp();
+  const { materials, addBudget, updateBudget, budgets, showToast } = useApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -55,7 +55,7 @@ export default function NewBudgetPage() {
   const handleAddItem = () => {
     if (!selectedMaterial) return;
     if (quantity <= 0) {
-      alert("Quantidade deve ser maior que zero.");
+      showToast('error', 'Erro ao adicionar item', "Quantidade deve ser maior que zero.");
       return;
     }
 
@@ -73,6 +73,7 @@ export default function NewBudgetPage() {
     // Reset selection
     setSelectedMaterialId('');
     setQuantity(1);
+    showToast('success', 'Item adicionado');
   };
 
   const handleRemoveItem = (id: string) => {
@@ -95,11 +96,11 @@ export default function NewBudgetPage() {
 
   const handleSaveBudget = () => {
     if (!supplierName.trim()) {
-      alert("Por favor, informe o nome do fornecedor.");
+      showToast('error', 'Dados incompletos', "Por favor, informe o nome do fornecedor.");
       return;
     }
     if (items.length === 0) {
-      alert("Adicione pelo menos um material ao orçamento.");
+      showToast('error', 'Orçamento vazio', "Adicione pelo menos um material ao orçamento.");
       return;
     }
 
@@ -117,10 +118,10 @@ export default function NewBudgetPage() {
 
     if (isEditing) {
       updateBudget(budgetData);
-      alert("Orçamento atualizado com sucesso!");
+      showToast('success', 'Orçamento atualizado', `O orçamento ${budgetNumber} foi salvo com sucesso.`);
     } else {
       addBudget(budgetData);
-      alert("Orçamento criado com sucesso!");
+      showToast('success', 'Orçamento criado', "Novo orçamento registrado no sistema.");
     }
     
     navigate('/orcamentos');
@@ -191,6 +192,7 @@ export default function NewBudgetPage() {
     }
 
     doc.save(`orcamento_${displayNum.replace(/\s+/g, '_')}.pdf`);
+    showToast('info', 'Download iniciado', 'O PDF do orçamento está sendo baixado.');
   };
 
   return (
@@ -241,17 +243,17 @@ export default function NewBudgetPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Telefone (Opcional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Telefone (Opcional - Apenas números)</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                     <Phone size={18} />
                   </div>
                   <input 
-                    type="text" 
+                    type="tel" 
                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-2 focus:ring-accent outline-none"
                     value={supplierPhone}
-                    onChange={e => setSupplierPhone(e.target.value)}
-                    placeholder="(00) 0000-0000"
+                    onChange={e => setSupplierPhone(e.target.value.replace(/\D/g, ''))}
+                    placeholder="11999999999"
                   />
                 </div>
               </div>

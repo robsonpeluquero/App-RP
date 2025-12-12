@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Material, Orcamento, User, ChecklistItem, Measurement, Addition, Integration } from './types';
+import { Material, Orcamento, User, ChecklistItem, Measurement, Addition, Integration, ToastMessage, ToastType, ConfirmDialogData } from './types';
 
 interface AppContextType {
   user: User | null;
@@ -10,6 +10,8 @@ interface AppContextType {
   measurements: Measurement[];
   additions: Addition[];
   integrations: Integration[];
+  
+  // Data Actions
   addMaterial: (material: Material) => Promise<void>;
   updateMaterial: (material: Material) => Promise<void>;
   deleteMaterial: (id: string) => Promise<void>;
@@ -24,22 +26,38 @@ interface AppContextType {
   deleteAddition: (id: string) => Promise<void>;
   connectIntegration: (provider: string, email: string) => Promise<void>;
   disconnectIntegration: (provider: string) => void;
+  
+  // Auth Actions
   login: (email: string, pass: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
   logout: () => void;
   recoverPassword: (email: string) => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<void>;
   changePassword: (currentPass: string, newPass: string) => Promise<void>;
+
+  // UI Actions
+  toast: ToastMessage | null;
+  showToast: (type: ToastType, title: string, message?: string) => void;
+  hideToast: () => void;
+  
+  confirmDialog: ConfirmDialogData;
+  askConfirmation: (data: Omit<ConfirmDialogData, 'isOpen'>) => void;
+  closeConfirmation: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   
-  // Helper to get registered users from simulated DB
+  // Helper to get registered users from simulated DB with Error Handling
   const getRegisteredUsers = (): User[] => {
-    const usersStr = localStorage.getItem('obra360_users_db');
-    return usersStr ? JSON.parse(usersStr) : [];
+    try {
+      const usersStr = localStorage.getItem('obra360_users_db');
+      return usersStr ? JSON.parse(usersStr) : [];
+    } catch (e) {
+      console.error("Erro ao ler banco de usuários:", e);
+      return [];
+    }
   };
 
   const saveRegisteredUser = (newUser: User) => {
@@ -54,12 +72,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('obra360_users_db', JSON.stringify(newUsers));
   };
 
-  // Load initial data (Application State)
+  // Load initial data (Application State) with Error Handling
   const loadInitialState = () => {
-    const saved = localStorage.getItem('obra360_app_data');
-    if (saved) {
-      return JSON.parse(saved);
+    try {
+      const saved = localStorage.getItem('obra360_app_data');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error("Erro ao ler estado da aplicação:", e);
     }
+    
     // Clean state by default
     return {
       user: null, // No user logged in by default
@@ -91,12 +114,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [data, setData] = useState<any>(loadInitialState);
   const [loading, setLoading] = useState(false);
 
+  // UI State
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogData>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
   const { user, materials, budgets, checklist, measurements, additions, integrations } = data;
 
   // Persist application state
   useEffect(() => {
     localStorage.setItem('obra360_app_data', JSON.stringify(data));
   }, [data]);
+
+  // Toast Helper
+  const showToast = (type: ToastType, title: string, message?: string) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToast({ id, type, title, message });
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      setToast((current) => (current?.id === id ? null : current));
+    }, 4000);
+  };
+
+  const hideToast = () => setToast(null);
+
+  // Confirmation Helper
+  const askConfirmation = (data: Omit<ConfirmDialogData, 'isOpen'>) => {
+    setConfirmDialog({ ...data, isOpen: true });
+  };
+
+  const closeConfirmation = () => {
+    setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+  };
 
   // --- Actions ---
 
@@ -272,7 +326,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       toggleCheckItem, addMeasurement, deleteMeasurement,
       addAddition, updateAddition, deleteAddition,
       connectIntegration, disconnectIntegration,
-      login, register, logout, recoverPassword, updateUser, changePassword
+      login, register, logout, recoverPassword, updateUser, changePassword,
+      toast, showToast, hideToast,
+      confirmDialog, askConfirmation, closeConfirmation
     }}>
       {children}
     </AppContext.Provider>

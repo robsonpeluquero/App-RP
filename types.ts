@@ -76,3 +76,23 @@ export interface Integration {
 export type UnitType = 'un' | 'm' | 'm²' | 'm³' | 'kg' | 'l' | 'cx';
 
 export const UNITS: UnitType[] = ['un', 'm', 'm²', 'm³', 'kg', 'l', 'cx'];
+
+// UI Feedback Types
+export type ToastType = 'success' | 'error' | 'info';
+
+export interface ToastMessage {
+  id: string;
+  type: ToastType;
+  title: string;
+  message?: string;
+}
+
+export interface ConfirmDialogData {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: 'danger' | 'info';
+}

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Plus, FileText, Calendar, Filter, X, Pencil, Trash, Store, Phone } from 'lucide-react';
 
 export default function BudgetsPage() {
-  const { budgets, deleteBudget } = useApp();
+  const { budgets, deleteBudget, askConfirmation, showToast } = useApp();
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -39,9 +39,16 @@ export default function BudgetsPage() {
   };
 
   const handleDelete = (id: string, numero: string) => {
-    if (window.confirm(`Tem certeza que deseja excluir o orçamento ${numero}?`)) {
-      deleteBudget(id);
-    }
+    askConfirmation({
+      title: 'Excluir Orçamento',
+      message: `Tem certeza que deseja excluir o orçamento ${numero}? Essa ação não pode ser desfeita.`,
+      variant: 'danger',
+      confirmLabel: 'Excluir',
+      onConfirm: async () => {
+        await deleteBudget(id);
+        showToast('success', 'Orçamento excluído', 'O orçamento foi removido com sucesso.');
+      }
+    });
   };
 
   return (

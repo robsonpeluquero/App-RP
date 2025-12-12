@@ -4,7 +4,7 @@ import { UNITS, Material } from '../types';
 import { Search, Plus, Filter, X, Pencil, Trash, Image as ImageIcon, Upload, Store } from 'lucide-react';
 
 export default function MaterialsPage() {
-  const { materials, addMaterial, updateMaterial, deleteMaterial } = useApp();
+  const { materials, addMaterial, updateMaterial, deleteMaterial, askConfirmation, showToast } = useApp();
   
   // Local state for UI
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,7 +64,7 @@ export default function MaterialsPage() {
         ...commonData
       };
       updateMaterial(updatedMaterial);
-      alert('Material atualizado com sucesso!');
+      showToast('success', 'Material atualizado', 'As alterações foram salvas com sucesso.');
     } else {
       // Create new
       const newMaterial: Material = {
@@ -72,16 +72,22 @@ export default function MaterialsPage() {
         ...commonData
       };
       addMaterial(newMaterial);
-      alert('Material adicionado com sucesso!');
+      showToast('success', 'Material adicionado', 'Novo material cadastrado no catálogo.');
     }
     
     setIsModalOpen(false);
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${name}"?`)) {
-      deleteMaterial(id);
-    }
+    askConfirmation({
+      title: 'Excluir Material',
+      message: `Tem certeza que deseja excluir "${name}" do catálogo?`,
+      variant: 'danger',
+      onConfirm: async () => {
+        await deleteMaterial(id);
+        showToast('success', 'Material excluído', 'O item foi removido do catálogo.');
+      }
+    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

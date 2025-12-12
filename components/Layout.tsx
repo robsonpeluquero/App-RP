@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Package, FileText, LayoutDashboard, Menu, X, BarChart2, Calculator, LogOut, User, Settings, ClipboardCheck, Ruler, Blocks } from 'lucide-react';
+import { Package, FileText, LayoutDashboard, Menu, X, BarChart2, Calculator, LogOut, User, Settings, ClipboardCheck, Ruler, Blocks, CheckCircle2, AlertTriangle, Info, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useApp } from '../context';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useApp();
+  const { user, logout, toast, hideToast, confirmDialog, closeConfirmation } = useApp();
 
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: <BarChart2 size={20} /> },
@@ -19,7 +19,75 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-gray-100 overflow-hidden relative">
+      
+      {/* --- UI Feedback Components --- */}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-[60] animate-in fade-in slide-in-from-right duration-300 max-w-sm w-full">
+          <div className={`bg-white rounded-lg shadow-lg border-l-4 p-4 flex items-start gap-3 ${
+            toast.type === 'success' ? 'border-green-500' : 
+            toast.type === 'error' ? 'border-red-500' : 'border-blue-500'
+          }`}>
+            <div className="shrink-0 pt-0.5">
+              {toast.type === 'success' && <CheckCircle2 className="text-green-500" size={20} />}
+              {toast.type === 'error' && <AlertCircle className="text-red-500" size={20} />}
+              {toast.type === 'info' && <Info className="text-blue-500" size={20} />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-gray-900">{toast.title}</h4>
+              {toast.message && <p className="text-sm text-gray-600 mt-1">{toast.message}</p>}
+            </div>
+            <button onClick={hideToast} className="text-gray-400 hover:text-gray-600">
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmDialog.isOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  confirmDialog.variant === 'danger' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
+                }`}>
+                  <AlertTriangle size={24} />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">{confirmDialog.title}</h3>
+              </div>
+              <p className="text-gray-600 mb-6">{confirmDialog.message}</p>
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={closeConfirmation}
+                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md font-medium hover:bg-gray-50 transition-colors"
+                >
+                  {confirmDialog.cancelLabel || 'Cancelar'}
+                </button>
+                <button 
+                  onClick={() => {
+                    confirmDialog.onConfirm();
+                    closeConfirmation();
+                  }}
+                  className={`px-4 py-2 text-white rounded-md font-medium shadow-sm transition-colors ${
+                    confirmDialog.variant === 'danger' 
+                      ? 'bg-red-600 hover:bg-red-700' 
+                      : 'bg-accent hover:bg-blue-700'
+                  }`}
+                >
+                  {confirmDialog.confirmLabel || 'Confirmar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- Main App Layout --- */}
+
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
