@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import ChecklistPage from './pages/ChecklistPage';
 import MeasurementsPage from './pages/MeasurementsPage';
 import IntegrationsPage from './pages/IntegrationsPage';
+import UpdateManager from './components/UpdateManager';
 import { AppProvider, useApp } from './context';
 
 // Wrapper for protected routes
@@ -57,6 +58,7 @@ const AppRoutes = () => {
 const App: React.FC = () => {
   return (
     <AppProvider>
+      <UpdateManager />
       <Router>
         <AppRoutes />
       </Router>

@@ -45,18 +45,6 @@
   <body class="bg-gray-50 text-gray-900 antialiased overscroll-none">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
-    </script>
+    <!-- Service Worker is now handled by UpdateManager component in React -->
   </body>
 </html>
