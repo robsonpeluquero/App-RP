@@ -2,8 +2,14 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema de Orçamentos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Obra360 - Sistema de Orçamentos</title>
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="Sistema completo para gestão de obras, orçamentos e materiais.">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2857/2857433.png">
+    
+    <!-- Keeping Tailwind CDN for simplicity in this migration -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -21,18 +27,35 @@
   <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1",
-    "jspdf": "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm",
-    "jspdf-autotable": "https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.1/+esm"
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.10.1",
+    "lucide-react": "https://esm.sh/lucide-react@^0.561.0",
+    "jspdf": "https://esm.sh/jspdf@^3.0.4",
+    "jspdf-autotable": "https://esm.sh/jspdf-autotable@^5.0.2",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.87.1",
+    "vite": "https://esm.sh/vite@^7.2.7",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
   }
 }
 </script>
 </head>
-  <body class="bg-gray-50 text-gray-900 antialiased">
+  <body class="bg-gray-50 text-gray-900 antialiased overscroll-none">
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

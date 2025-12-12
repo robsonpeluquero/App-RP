@@ -19,13 +19,18 @@ export default function RegisterPage() {
       alert("As senhas não coincidem.");
       return;
     }
+    if (password.length < 6) {
+        alert("A senha deve ter pelo menos 6 caracteres.");
+        return;
+    }
 
     setIsLoading(true);
     try {
       await register(name, email, password);
+      // Register function now automatically logs user in and updates state
       navigate('/dashboard');
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      alert(error.message || "Erro ao criar conta.");
     } finally {
       setIsLoading(false);
     }
@@ -86,6 +91,7 @@ export default function RegisterPage() {
               <input
                 type="password"
                 required
+                minLength={6}
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent outline-none bg-white text-gray-900"
                 placeholder="••••••••"
                 value={password}
@@ -103,6 +109,7 @@ export default function RegisterPage() {
               <input
                 type="password"
                 required
+                minLength={6}
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent outline-none bg-white text-gray-900"
                 placeholder="••••••••"
                 value={confirmPassword}

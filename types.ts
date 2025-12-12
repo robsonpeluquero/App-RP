@@ -12,18 +12,18 @@ export interface Material {
 export interface OrcamentoItem {
   id: string;
   materialId: string;
-  descricaoSnapshot: string; // Guardamos o nome caso o material seja deletado futuramente
+  descricaoSnapshot: string;
   quantidade: number;
-  precoUnitario: number; // Preço no momento do orçamento
+  precoUnitario: number;
   subtotal: number;
 }
 
 export interface Orcamento {
   id: string;
   numero: string;
-  fornecedorNome: string; // Renamed from clienteNome
-  fornecedorTelefone?: string; // New
-  fornecedorSite?: string; // New
+  fornecedorNome: string;
+  fornecedorTelefone?: string;
+  fornecedorSite?: string;
   data: string;
   observacoes?: string;
   itens: OrcamentoItem[];
@@ -35,6 +35,7 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
+  password?: string; // Only for local storage simulation
 }
 
 export interface ChecklistItem {
@@ -46,19 +47,19 @@ export interface ChecklistItem {
 
 export interface Measurement {
   id: string;
-  stage: string; // Etapa (ex: Fundação, Alvenaria)
+  stage: string;
   date: string;
-  percentage: number; // Progresso %
+  percentage: number;
   description: string;
-  photos: string[]; // Base64 strings
+  photos: string[];
 }
 
 export interface Addition {
   id: string;
   date: string;
-  reason: string; // Motivo da alteração de escopo
-  costImpact: number; // Custo extra
-  timeImpact: number; // Dias extras
+  reason: string;
+  costImpact: number;
+  timeImpact: number;
   status: 'pending' | 'approved' | 'rejected';
 }
 

@@ -18,8 +18,8 @@ export default function LoginPage() {
     try {
       await login(email, password);
       navigate('/dashboard');
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      alert(error.message || "Erro ao fazer login.");
     } finally {
       setIsLoading(false);
     }
@@ -32,7 +32,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-blue-50 text-accent mb-4">
             <LayoutDashboard size={24} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Bem-vindo de volta</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Obra360</h1>
           <p className="text-gray-500 mt-2">Faça login para gerenciar suas obras.</p>
         </div>
 
@@ -55,7 +55,10 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-gray-700">Senha</label>
+              <Link to="/forgot-password" className="text-xs text-accent hover:underline font-medium">Esqueceu a senha?</Link>
+            </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                 <Lock size={18} />

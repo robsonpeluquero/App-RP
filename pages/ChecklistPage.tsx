@@ -67,7 +67,7 @@ export default function ChecklistPage() {
 
       {/* Categories List */}
       <div className="space-y-6">
-        {Object.entries(groupedItems).map(([category, items]) => {
+        {Object.entries(groupedItems).map(([category, items]: [string, ChecklistItem[]]) => {
             const categoryCompleted = items.every(i => i.completed);
             
             return (

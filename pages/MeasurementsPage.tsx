@@ -75,7 +75,7 @@ function MeasurementsView({ measurements, onAdd, onDelete }: {
     const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files) {
-            Array.from(files).forEach(file => {
+            Array.from(files).forEach((file: File) => {
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     setPhotos(prev => [...prev, reader.result as string]);
