@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Trash, Save, PlusCircle, AlertCircle, Phone, Globe, Store, FileDown } from 'lucide-react';
+import { ArrowLeft, Trash, Save, PlusCircle, AlertCircle, Phone, Globe, Store, FileDown, ListPlus, Search, X, Check } from 'lucide-react';
 import { OrcamentoItem, Orcamento } from '../types';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -20,11 +20,17 @@ export default function NewBudgetPage() {
   const [supplierSite, setSupplierSite] = useState('');
   const [obs, setObs] = useState('');
   const [budgetNumber, setBudgetNumber] = useState(''); // To keep the number when editing
+  const [budgetStatus, setBudgetStatus] = useState<any>('em_analise'); // Preserve status on edit
 
-  // Item Form State
+  // Item Form State (Single Add)
   const [selectedMaterialId, setSelectedMaterialId] = useState('');
   const [quantity, setQuantity] = useState<number>(1);
   
+  // Bulk Selection State
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [bulkSearchTerm, setBulkSearchTerm] = useState('');
+  const [bulkQuantities, setBulkQuantities] = useState<Record<string, number>>({});
+
   // Items List State
   const [items, setItems] = useState<OrcamentoItem[]>([]);
 
@@ -39,6 +45,7 @@ export default function NewBudgetPage() {
         setObs(existingBudget.observacoes || '');
         setItems(existingBudget.itens);
         setBudgetNumber(existingBudget.numero);
+        setBudgetStatus(existingBudget.status || 'em_analise');
       } else {
         // If ID invalid, go back
         navigate('/orcamentos');
@@ -51,6 +58,18 @@ export default function NewBudgetPage() {
   const currentItemSubtotal = selectedMaterial ? selectedMaterial.precoUnitario * quantity : 0;
   
   const totalBudget = items.reduce((acc, item) => acc + item.subtotal, 0);
+
+  // Filter for Bulk Modal
+  const filteredBulkMaterials = useMemo(() => {
+    return materials.filter(m => 
+      m.descricao.toLowerCase().includes(bulkSearchTerm.toLowerCase()) || 
+      m.codigo.toLowerCase().includes(bulkSearchTerm.toLowerCase())
+    );
+  }, [materials, bulkSearchTerm]);
+
+  const countBulkItems = Object.values(bulkQuantities).filter(q => q > 0).length;
+
+  // --- Handlers ---
 
   const handleAddItem = () => {
     if (!selectedMaterial) return;
@@ -74,6 +93,44 @@ export default function NewBudgetPage() {
     setSelectedMaterialId('');
     setQuantity(1);
     showToast('success', 'Item adicionado');
+  };
+
+  const handleBulkQuantityChange = (id: string, qty: string) => {
+    const val = parseFloat(qty);
+    setBulkQuantities(prev => ({
+      ...prev,
+      [id]: isNaN(val) ? 0 : val
+    }));
+  };
+
+  const confirmBulkSelection = () => {
+    const newItems: OrcamentoItem[] = [];
+    
+    Object.entries(bulkQuantities).forEach(([matId, qty]) => {
+      if (qty > 0) {
+        const mat = materials.find(m => m.id === matId);
+        if (mat) {
+          newItems.push({
+            id: Math.random().toString(36).substr(2, 9),
+            materialId: mat.id,
+            descricaoSnapshot: mat.descricao,
+            precoUnitario: mat.precoUnitario,
+            quantidade: qty,
+            subtotal: mat.precoUnitario * qty
+          });
+        }
+      }
+    });
+
+    if (newItems.length > 0) {
+      setItems(prev => [...prev, ...newItems]);
+      showToast('success', 'Itens adicionados', `${newItems.length} materiais foram inseridos no orçamento.`);
+      setIsBulkModalOpen(false);
+      setBulkQuantities({});
+      setBulkSearchTerm('');
+    } else {
+      showToast('info', 'Nenhum item selecionado', 'Insira a quantidade para pelo menos um material.');
+    }
   };
 
   const handleRemoveItem = (id: string) => {
@@ -107,6 +164,7 @@ export default function NewBudgetPage() {
     const budgetData: Orcamento = {
       id: isEditing && id ? id : Math.random().toString(36).substr(2, 9),
       numero: isEditing ? budgetNumber : `ORC-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
+      status: budgetStatus, // Preserve existing status or default
       fornecedorNome: supplierName,
       fornecedorTelefone: supplierPhone,
       fornecedorSite: supplierSite,
@@ -120,7 +178,8 @@ export default function NewBudgetPage() {
       updateBudget(budgetData);
       showToast('success', 'Orçamento atualizado', `O orçamento ${budgetNumber} foi salvo com sucesso.`);
     } else {
-      addBudget(budgetData);
+      // New budget starts as em_analise (handled by default in context, but explicit here is fine)
+      addBudget({ ...budgetData, status: 'em_analise' });
       showToast('success', 'Orçamento criado', "Novo orçamento registrado no sistema.");
     }
     
@@ -289,20 +348,31 @@ export default function NewBudgetPage() {
 
           {/* Add Item Card */}
           <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="w-1 h-6 bg-accent rounded-full"></span>
-              Adicionar Itens
-            </h2>
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <span className="w-1 h-6 bg-accent rounded-full"></span>
+                  Adicionar Itens
+                </h2>
+                
+                {/* Bulk Add Trigger */}
+                <button 
+                  onClick={() => setIsBulkModalOpen(true)}
+                  className="text-sm px-3 py-1.5 bg-blue-50 text-accent font-medium rounded-md hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+                >
+                  <ListPlus size={16} />
+                  Seleção Múltipla
+                </button>
+             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Selecione o Material</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Selecione (Unitário)</label>
                 <select 
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent outline-none bg-white text-gray-900"
                   value={selectedMaterialId}
                   onChange={e => setSelectedMaterialId(e.target.value)}
                 >
-                  <option value="">Selecione...</option>
+                  <option value="">Selecione um material...</option>
                   {materials.map(m => (
                     <option key={m.id} value={m.id}>
                       {m.codigo ? `[${m.codigo}] ` : ''}{m.descricao} ({m.precoUnitario.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}/{m.unidade})
@@ -455,6 +525,116 @@ export default function NewBudgetPage() {
         </div>
 
       </div>
+
+      {/* --- BULK SELECTION MODAL --- */}
+      {isBulkModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <ListPlus size={20} className="text-accent" />
+                Catálogo de Materiais
+              </h2>
+              <button onClick={() => setIsBulkModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Search */}
+            <div className="p-4 border-b border-gray-100 bg-white">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input 
+                  type="text"
+                  placeholder="Buscar material para adicionar..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:ring-2 focus:ring-accent outline-none"
+                  value={bulkSearchTerm}
+                  onChange={e => setBulkSearchTerm(e.target.value)}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Modal List */}
+            <div className="flex-1 overflow-y-auto p-0">
+               <table className="w-full text-left text-sm">
+                 <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200 sticky top-0 z-10">
+                   <tr>
+                     <th className="px-6 py-3">Descrição</th>
+                     <th className="px-6 py-3 text-right">Preço</th>
+                     <th className="px-6 py-3 w-32 text-center">Quantidade</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y divide-gray-100">
+                    {filteredBulkMaterials.length > 0 ? (
+                      filteredBulkMaterials.map(mat => {
+                         const qty = bulkQuantities[mat.id] || 0;
+                         return (
+                           <tr key={mat.id} className={`transition-colors ${qty > 0 ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
+                             <td className="px-6 py-3">
+                                <p className="font-medium text-gray-900">{mat.descricao}</p>
+                                <p className="text-xs text-gray-500">{mat.codigo ? `Ref: ${mat.codigo} • ` : ''} {mat.unidade}</p>
+                             </td>
+                             <td className="px-6 py-3 text-right text-gray-700">
+                               {mat.precoUnitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                             </td>
+                             <td className="px-6 py-3 text-center">
+                                <input 
+                                  type="number"
+                                  min="0"
+                                  className={`w-20 px-2 py-1.5 border rounded-md text-center outline-none focus:ring-2 focus:ring-accent ${qty > 0 ? 'border-accent font-bold text-accent bg-white' : 'border-gray-300 text-gray-900'}`}
+                                  placeholder="0"
+                                  value={qty || ''}
+                                  onChange={(e) => handleBulkQuantityChange(mat.id, e.target.value)}
+                                />
+                             </td>
+                           </tr>
+                         );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={3} className="text-center py-8 text-gray-500">
+                          Nenhum material encontrado para "{bulkSearchTerm}".
+                        </td>
+                      </tr>
+                    )}
+                 </tbody>
+               </table>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
+               <div className="text-sm text-gray-500">
+                 {countBulkItems > 0 ? (
+                    <span className="text-accent font-medium">{countBulkItems} itens selecionados</span>
+                 ) : (
+                    "Digite as quantidades para selecionar"
+                 )}
+               </div>
+               <div className="flex gap-3">
+                  <button 
+                    onClick={() => setIsBulkModalOpen(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={confirmBulkSelection}
+                    disabled={countBulkItems === 0}
+                    className="px-4 py-2 text-sm font-medium text-white bg-accent rounded-md hover:bg-blue-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    <Check size={16} />
+                    Confirmar Seleção
+                  </button>
+               </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

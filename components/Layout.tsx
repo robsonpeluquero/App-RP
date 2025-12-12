@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Package, FileText, LayoutDashboard, Menu, X, BarChart2, Calculator, LogOut, User, Settings, ClipboardCheck, Ruler, Blocks, CheckCircle2, AlertTriangle, Info, AlertCircle } from 'lucide-react';
+import { Package, FileText, LayoutDashboard, Menu, X, BarChart2, Calculator, LogOut, User, Settings, ClipboardCheck, Ruler, Blocks, CheckCircle2, AlertTriangle, Info, AlertCircle, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useApp } from '../context';
 
@@ -17,6 +17,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { to: '/checklist', label: 'Checklist', icon: <ClipboardCheck size={20} /> },
     { to: '/integracoes', label: 'Integrações', icon: <Blocks size={20} /> },
   ];
+
+  // Only Admin and Manager can see "Usuários"
+  if (user?.role === 'admin' || user?.role === 'manager') {
+    navItems.push({ to: '/usuarios', label: 'Usuários', icon: <Users size={20} /> });
+  }
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden relative">
@@ -151,7 +156,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
             <div className="flex-1 min-w-0 text-left">
               <p className="text-sm font-medium text-gray-900 truncate group-hover:text-accent transition-colors">{user?.name}</p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-500 truncate">{user?.email}</span>
+                <span className={`w-2 h-2 rounded-full ${user?.role === 'admin' ? 'bg-purple-500' : user?.role === 'manager' ? 'bg-blue-500' : 'bg-gray-400'}`}></span>
+              </div>
             </div>
             <Settings size={16} className="text-gray-400 group-hover:text-accent" />
           </NavLink>

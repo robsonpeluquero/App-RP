@@ -18,9 +18,12 @@ export interface OrcamentoItem {
   subtotal: number;
 }
 
+export type OrcamentoStatus = 'em_analise' | 'aprovado' | 'rejeitado';
+
 export interface Orcamento {
   id: string;
   numero: string;
+  status: OrcamentoStatus;
   fornecedorNome: string;
   fornecedorTelefone?: string;
   fornecedorSite?: string;
@@ -28,7 +31,23 @@ export interface Orcamento {
   observacoes?: string;
   itens: OrcamentoItem[];
   valorTotal: number;
+  // Campos de Aprovação
+  aprovadoPor?: {
+    id: string;
+    nome: string;
+  };
+  dataAprovacao?: string;
+  observacaoAprovacao?: string;
+  // Campos de Solicitação de Exclusão
+  deletionRequest?: {
+    requesterId: string;
+    requesterName: string;
+    date: string;
+    reason: string;
+  };
 }
+
+export type UserRole = 'admin' | 'manager' | 'collaborator';
 
 export interface User {
   id: string;
@@ -36,6 +55,7 @@ export interface User {
   email: string;
   avatar?: string;
   password?: string; // Only for local storage simulation
+  role: UserRole;
 }
 
 export interface ChecklistItem {

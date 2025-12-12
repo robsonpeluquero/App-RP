@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import ChecklistPage from './pages/ChecklistPage';
 import MeasurementsPage from './pages/MeasurementsPage';
 import IntegrationsPage from './pages/IntegrationsPage';
+import UsersPage from './pages/UsersPage';
 import UpdateManager from './components/UpdateManager';
 import { AppProvider, useApp } from './context';
 
@@ -50,6 +51,7 @@ const AppRoutes = () => {
         <Route path="/checklist" element={<ChecklistPage />} />
         <Route path="/integracoes" element={<IntegrationsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/usuarios" element={<UsersPage />} />
       </Route>
     </Routes>
   );
